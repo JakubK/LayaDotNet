@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="LayaDotNet.Console\LayaDotNet.Console.csproj" />
+  <Project Path="LayaDotNet/LayaDotNet.csproj" />
+</Solution>
