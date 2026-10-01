@@ -44,6 +44,11 @@ public static class Utils
             _ => "noul"
         };
     }
+    
+    public static string Scrub(string s, SpecialIds specialIds)
+    {
+        return string.Join(" ", s.Split(specialIds.MaskTok));
+    }
 
     public static string TempBucket(QuestionKind kind, int k)
     {

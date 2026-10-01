@@ -3,7 +3,7 @@ using LayaDotNet.Questions;
 
 var laya = await Laya.LoadAsync();
 
-var response = laya.Predict("I need help with product which is not working as expected", [
+var response = laya.Predict("Subject: Refund not received. Body: I cancelled two weeks ago and still have no refund...", [
     new ChoiceQuestion("department", "Which team should handle this ticket?", new ()
     {
         {"billing", "payments, refunds, invoices"},

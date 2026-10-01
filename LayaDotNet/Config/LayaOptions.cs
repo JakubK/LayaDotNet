@@ -1,4 +1,4 @@
-namespace LayaDotNet;
+namespace LayaDotNet.Config;
 
 public class LayaOptions
 {

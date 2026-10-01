@@ -140,7 +140,7 @@ public class Laya(InferenceSession session, Tokenizer tokenizer, LayaConfig laya
             var values = new float[k];
             
             var temp = layaConfig.TemperatureByOptions[Utils.TempBucket(item.QuestionBase.Kind, k)];
-
+            Console.WriteLine(temp + " temp");
             for (int i = 0; i < k; i++)
             {
                 values[i] = logits.GetValue(start + i) / temp;
