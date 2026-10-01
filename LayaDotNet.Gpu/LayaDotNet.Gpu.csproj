@@ -4,12 +4,15 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <RootNamespace>LayaDotNet.Gpu</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CliWrap" Version="3.10.5" />
-        <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.30.0" />
-        <PackageReference Include="Tokenizers.HuggingFace" Version="3.23.1" />
+        <PackageReference Include="Microsoft.ML.OnnxRuntime.Gpu" Version="1.30.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\LayaDotNet.Core\LayaDotNet.Core.csproj" />
     </ItemGroup>
 
 </Project>

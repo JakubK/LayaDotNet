@@ -1,9 +1,12 @@
-﻿using LayaDotNet;
+﻿using System.Diagnostics;
+using LayaDotNet.Gpu;
 using LayaDotNet.Questions;
 
+var timer = new Stopwatch();
 var laya = await Laya.LoadAsync();
 
-var response = laya.Predict("Subject: Refund not received. Body: I cancelled two weeks ago and still have no refund...", [
+timer.Start();
+var response = laya.Predict("I need help with product which is not working as expected", [
     new ChoiceQuestion("department", "Which team should handle this ticket?", new ()
     {
         {"billing", "payments, refunds, invoices"},
@@ -13,17 +16,19 @@ var response = laya.Predict("Subject: Refund not received. Body: I cancelled two
     new ScoreQuestion("urgency", "How urgent is this ticket?", ["not urgent", "somewhat urgent", "urgent", "critical"]),
     new NoulQuestion("churn_risk", "Is the customer likely to cancel or dispute?")
 ]);
+timer.Stop();
 
-var choice = response.Choice("department");
-var score = response.Score("urgency");
-var noul = response.Noul("churn_risk");
+var department = response.Choice("department");
+var urgency = response.Score("urgency");
+var churnRisk = response.Noul("churn_risk");
 
-Console.WriteLine(choice.Choice);
-foreach (var kvp in choice.Probabilities)
+Console.WriteLine(department.Choice);
+foreach (var kvp in department.Probabilities)
 {
     Console.WriteLine(kvp.Key + " => " + kvp.Value);
 }
-Console.WriteLine(score.Score);
-Console.WriteLine(noul.Noul);
+Console.WriteLine(urgency.Score);
+Console.WriteLine(churnRisk.Noul);
 Console.WriteLine(response.TokenUsage);
 
+Console.WriteLine(timer.ElapsedMilliseconds + " ms");

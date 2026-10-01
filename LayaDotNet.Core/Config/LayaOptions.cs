@@ -8,6 +8,7 @@ public class LayaOptions
     public string TokenizerPath { get; set; } = "./onnx-laya/tokenizer/tokenizer.json";
     public string TokenizerConfigPath { get; set; } = "./onnx-laya/tokenizer/tokenizer_config.json";
     public string LayaConfigPath { get; set; } = "./onnx-laya/laya_config.json";
+    public RuntimeBackend RuntimeBackend { get; set; } = RuntimeBackend.Cpu;
 
     public static LayaOptions Build(string hfRepo, string downloadPath)
     {

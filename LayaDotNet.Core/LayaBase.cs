@@ -9,9 +9,14 @@ using Tokenizers.HuggingFace.Tokenizer;
 
 namespace LayaDotNet;
 
-public class Laya(InferenceSession session, Tokenizer tokenizer, LayaConfig layaConfig, SpecialIds specialIds) : IDisposable
+public class LayaBase(Tokenizer tokenizer, LayaConfig layaConfig, SpecialIds specialIds)
 {
-    public static async Task<Laya> LoadAsync(LayaOptions? options = null)
+    public readonly Tokenizer Tokenizer = tokenizer;
+    public readonly LayaConfig LayaConfig = layaConfig;
+    public readonly SpecialIds SpecialIds = specialIds;
+    public LayaOptions LayaOptions { get; set; }
+    
+    public static async Task<LayaBase> LoadBaseAsync(LayaOptions? options = null)
     {
         if (options == null)
         {
@@ -22,12 +27,11 @@ public class Laya(InferenceSession session, Tokenizer tokenizer, LayaConfig laya
         {
             await Cli.Wrap("hf")
                 .WithArguments(["download", options.HfRepo, "--local-dir", options.DownloadPath])
-                .WithStandardErrorPipe(PipeTarget.ToDelegate(System.Console.Error.WriteLine))
-                .WithStandardOutputPipe(PipeTarget.ToDelegate(System.Console.WriteLine))
+                .WithStandardErrorPipe(PipeTarget.ToDelegate(Console.Error.WriteLine))
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
                 .ExecuteAsync();
         }
         
-        var layaSession = new InferenceSession($"{options.DownloadPath}/laya.onnx");
         var layaTokenizer = Tokenizer.FromFile(options.TokenizerPath);
 
         var layaConfigText = await File.ReadAllTextAsync(options.LayaConfigPath);
@@ -37,29 +41,27 @@ public class Laya(InferenceSession session, Tokenizer tokenizer, LayaConfig laya
         var tokenizerConfig = JsonSerializer.Deserialize<TokenizerConfig>(tokenizerConfigText)!;
 
         var specialIds = new SpecialIds(
-            TokenToId(layaTokenizer, tokenizerConfig.ClsToken),
-            TokenToId(layaTokenizer, tokenizerConfig.SepToken),
-            TokenToId(layaTokenizer, tokenizerConfig.MaskToken),
-            TokenToId(layaTokenizer, tokenizerConfig.PadToken),
+            Utils.TokenToId(layaTokenizer, tokenizerConfig.ClsToken),
+            Utils.TokenToId(layaTokenizer, tokenizerConfig.SepToken),
+            Utils.TokenToId(layaTokenizer, tokenizerConfig.MaskToken),
+            Utils.TokenToId(layaTokenizer, tokenizerConfig.PadToken),
             tokenizerConfig.MaskToken
         );
-
-        return new(layaSession, layaTokenizer, layaConfig, specialIds);
+        
+        return new(layaTokenizer, layaConfig, specialIds)
+        {
+            LayaOptions = options
+        };
     }
 
-    public SystemOneResponse Predict(string state, List<QuestionBase> questions)
+    public static Inputs PrepareInputTensors(string state, List<QuestionBase> questions, Tokenizer tokenizer, SpecialIds specialIds, LayaConfig layaConfig)
     {
         var sequenceBuilder = new SequenceBuilder(tokenizer, specialIds);
         var items = questions
             .Select(x =>
             {
                 var sequence = sequenceBuilder.Build(state, x, layaConfig.MaxLength, layaConfig.HeadMaxLength);
-                return new
-                {
-                    QuestionBase = x,
-                    sequence.Ids, 
-                    sequence.Markers
-                };
+                return new SequenceItem(x, sequence.Ids, sequence.Markers);
             })
             .ToList();
 
@@ -98,7 +100,7 @@ public class Laya(InferenceSession session, Tokenizer tokenizer, LayaConfig laya
             qtype[i] = (long)it.QuestionBase.Kind;
         }
         
-        var inputs = new List<NamedOnnxValue>
+        var tensors = new List<NamedOnnxValue>
         {
             NamedOnnxValue.CreateFromTensor(
                 "input_ids",
@@ -120,27 +122,25 @@ public class Laya(InferenceSession session, Tokenizer tokenizer, LayaConfig laya
                 "qtype",
                 new DenseTensor<long>(qtype, new[] { n }))
         };
-        
-        using var outs = session.Run(inputs);
 
-        var logits = outs.First(x => x.Name == "logits").AsTensor<float>();
-        var actProbs = outs.First(x => x.Name == "act_probs").AsTensor<float>();
+        return new(K, l, n, inputIds, attention, markerPos, markerMask, qtype, nTokens, items, tensors);
+    }
 
-        var nAct = session.OutputMetadata["act_probs"].Dimensions[1];
-
+    public static SystemOneResponse ProcessModelOutput(Inputs inputData, LayaConfig layaConfig, int nAct, Tensor<float> logits, Tensor<float> actProbs)
+    {
         var answers = new Dictionary<string, AnswerBase>();
         
-        foreach (var item in items)
+        foreach (var item in inputData.Items)
         {
             var key = item.QuestionBase.Key;
             
-            var r = items.IndexOf(item);
-            var start = r * K;
+            var r = inputData.Items.IndexOf(item);
+            var start = r * inputData.K;
             var k = item.Markers.Length;
             var values = new float[k];
             
             var temp = layaConfig.TemperatureByOptions[Utils.TempBucket(item.QuestionBase.Kind, k)];
-            Console.WriteLine(temp + " temp");
+
             for (int i = 0; i < k; i++)
             {
                 values[i] = logits.GetValue(start + i) / temp;
@@ -182,20 +182,8 @@ public class Laya(InferenceSession session, Tokenizer tokenizer, LayaConfig laya
             {
                 answers[key] = new NoulAnswer(Utils.Round4(p[1]), ext);
             }
-
         }
 
-        return new (answers, nTokens);
-    }
-
-    private static uint TokenToId(Tokenizer tokenizer, string token)
-    {
-        return tokenizer.Encode(token, false).First().Ids.First();
-    }
-
-    public void Dispose()
-    {
-        session.Dispose();
-        tokenizer.Dispose();
+        return new (answers, inputData.NTokens);
     }
 }

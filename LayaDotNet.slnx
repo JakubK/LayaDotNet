@@ -1,4 +1,6 @@
 <Solution>
   <Project Path="LayaDotNet.Console\LayaDotNet.Console.csproj" />
-  <Project Path="LayaDotNet/LayaDotNet.csproj" />
+  <Project Path="LayaDotNet.Core\LayaDotNet.Core.csproj" />
+  <Project Path="LayaDotNet.Cpu/LayaDotNet.Cpu.csproj" />
+  <Project Path="LayaDotNet.Gpu\LayaDotNet.Gpu.csproj" />
 </Solution>

@@ -1,3 +1,5 @@
+using Tokenizers.HuggingFace.Tokenizer;
+
 namespace LayaDotNet;
 
 public static class Utils
@@ -56,4 +58,9 @@ public static class Utils
     }
 
     public static float Round4(float number) => MathF.Round(number * 1e4f) / 1e4f;
+    
+    public static uint TokenToId(Tokenizer tokenizer, string token)
+    {
+        return tokenizer.Encode(token, false).First().Ids.First();
+    }
 }

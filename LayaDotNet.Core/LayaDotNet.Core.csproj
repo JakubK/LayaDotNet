@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>LayaDotNet</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CliWrap" Version="3.10.5" />
+        <PackageReference Include="Tokenizers.HuggingFace" Version="3.23.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Microsoft.ML.OnnxRuntime">
+        <HintPath>..\..\..\.nuget\packages\microsoft.ml.onnxruntime.managed\1.30.0\lib\net8.0\Microsoft.ML.OnnxRuntime.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>
