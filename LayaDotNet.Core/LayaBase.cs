@@ -9,14 +9,9 @@ using Tokenizers.HuggingFace.Tokenizer;
 
 namespace LayaDotNet;
 
-public class LayaBase(Tokenizer tokenizer, LayaConfig layaConfig, SpecialIds specialIds)
+public static class LayaBase
 {
-    public readonly Tokenizer Tokenizer = tokenizer;
-    public readonly LayaConfig LayaConfig = layaConfig;
-    public readonly SpecialIds SpecialIds = specialIds;
-    public LayaOptions LayaOptions { get; set; }
-    
-    public static async Task<LayaBase> LoadBaseAsync(LayaOptions? options = null)
+    public static async Task<(Tokenizer Tokenizer, LayaConfig Config, SpecialIds SpecialIds, LayaOptions Options)> LoadBaseAsync(LayaOptions? options = null)
     {
         if (options == null)
         {
@@ -47,11 +42,8 @@ public class LayaBase(Tokenizer tokenizer, LayaConfig layaConfig, SpecialIds spe
             Utils.TokenToId(layaTokenizer, tokenizerConfig.PadToken),
             tokenizerConfig.MaskToken
         );
-        
-        return new(layaTokenizer, layaConfig, specialIds)
-        {
-            LayaOptions = options
-        };
+
+        return (layaTokenizer, layaConfig, specialIds, options);
     }
 
     public static Inputs PrepareInputTensors(string state, List<QuestionBase> questions, Tokenizer tokenizer, SpecialIds specialIds, LayaConfig layaConfig)
@@ -70,7 +62,7 @@ public class LayaBase(Tokenizer tokenizer, LayaConfig layaConfig, SpecialIds spe
         var K = items.Max(x => x.Markers.Length);
         
         var inputIds = Enumerable
-            .Repeat((long)specialIds.Pad, (int)(n * l))
+            .Repeat((long)specialIds.Pad, n * l)
             .ToArray();       
         var attention = new long[n * l];
         var markerPos = new long[n * K];
@@ -151,7 +143,7 @@ public class LayaBase(Tokenizer tokenizer, LayaConfig layaConfig, SpecialIds spe
 
             if (item.QuestionBase.Kind == QuestionKind.Choice)
             {
-                var choiceQuestion = item.QuestionBase as ChoiceQuestion;
+                var choiceQuestion = (item.QuestionBase as ChoiceQuestion)!;
                 var keys = choiceQuestion.Criteria.Keys;
                 var best = p.IndexOf(p.Max());
                 var probabilities = keys.Select((kk, i) => new KeyValuePair<string, float>(kk, Utils.Round4(p[i]))).ToDictionary();
@@ -162,7 +154,7 @@ public class LayaBase(Tokenizer tokenizer, LayaConfig layaConfig, SpecialIds spe
             }
             else if (item.QuestionBase.Kind == QuestionKind.Score)
             {
-                var scoreQuestion = item.QuestionBase as ScoreQuestion;
+                var scoreQuestion = (item.QuestionBase as ScoreQuestion)!;
                 
                 var score = 0.0f;
                 for (int i = 0; i < p.Length; i++)
