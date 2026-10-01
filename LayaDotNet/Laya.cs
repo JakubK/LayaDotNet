@@ -47,7 +47,7 @@ public class Laya(InferenceSession session, Tokenizer tokenizer, LayaConfig laya
         return new(layaSession, layaTokenizer, layaConfig, specialIds);
     }
 
-    public LayaResponse Predict(string state, List<QuestionBase> questions)
+    public SystemOneResponse Predict(string state, List<QuestionBase> questions)
     {
         var sequenceBuilder = new SequenceBuilder(tokenizer, specialIds);
         var items = questions

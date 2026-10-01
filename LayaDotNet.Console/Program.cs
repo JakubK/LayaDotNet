@@ -1,10 +1,9 @@
 ﻿using LayaDotNet;
-using LayaDotNet.Answers;
 using LayaDotNet.Questions;
 
-var x = await Laya.LoadAsync();
+var laya = await Laya.LoadAsync();
 
-var result = x.Predict("I need help with product which is not working as expected", [
+var response = laya.Predict("I need help with product which is not working as expected", [
     new ChoiceQuestion("department", "Which team should handle this ticket?", new ()
     {
         {"billing", "payments, refunds, invoices"},
@@ -15,16 +14,16 @@ var result = x.Predict("I need help with product which is not working as expecte
     new NoulQuestion("churn_risk", "Is the customer likely to cancel or dispute?")
 ]);
 
-var choice = result.Answers["department"] as ChoiceAnswer;
-var score = result.Answers["urgency"] as ScoreAnswer;
-var noul = result.Answers["churn_risk"] as NoulAnswer;
+var choice = response.Choice("department");
+var score = response.Score("urgency");
+var noul = response.Noul("churn_risk");
 
-Console.WriteLine(choice!.Choice);
+Console.WriteLine(choice.Choice);
 foreach (var kvp in choice.Probabilities)
 {
     Console.WriteLine(kvp.Key + " => " + kvp.Value);
 }
 Console.WriteLine(score.Score);
 Console.WriteLine(noul.Noul);
-Console.WriteLine(result.TokenUsage);
+Console.WriteLine(response.TokenUsage);
 
