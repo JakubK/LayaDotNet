@@ -1,4 +1,3 @@
-using System.Text.Json;
 using LayaDotNet.Questions;
 using Tokenizers.HuggingFace.Tokenizer;
 
@@ -10,9 +9,7 @@ public class SequenceBuilder(Tokenizer tokenizer, SpecialIds specialIds)
     {
         var opts = RenderOptions(questionBase);
         var encodedQuestion = $"{Utils.QuestionType(questionBase.Kind)} question: {Utils.Scrub(questionBase.Instructions, specialIds)}";
-
         var headIds = tokenizer.Encode(encodedQuestion, false).First().Ids;
-
         var optIds = opts.Select(x =>
         {
             var encodedOpt = " " + Utils.Scrub(x, specialIds);
@@ -30,7 +27,7 @@ public class SequenceBuilder(Tokenizer tokenizer, SpecialIds specialIds)
         seq.Add(specialIds.Sep);
 
         var markers = new List<int>();
-
+        
         foreach (var o in optIds)
         {
             markers.Add(seq.Count);
@@ -38,13 +35,10 @@ public class SequenceBuilder(Tokenizer tokenizer, SpecialIds specialIds)
         }
 
         seq.Add(specialIds.Sep);
-
+        
         var room = Math.Max(0, maxLength - seq.Count - 1);
-        var st = tokenizer.Encode(Utils.Scrub(JsonSerializer.Serialize(state, new JsonSerializerOptions
-        {
-            WriteIndented = false
-        }), specialIds), false).First().Ids.Take(room);
-
+        var st = tokenizer.Encode(Utils.Scrub(Utils.SerializeState(state)!, specialIds), false).First().Ids.Take(room);
+        
         seq.AddRange(st);
         seq.Add(specialIds.Sep);
 

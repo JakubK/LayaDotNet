@@ -16,6 +16,8 @@ public class Laya(InferenceSession session, Tokenizer tokenizer, LayaConfig laya
         return new(layaSession, layaBase.Tokenizer, layaBase.Config, layaBase.SpecialIds);
     }
 
+
+    public SystemOneResponse Predict(dynamic state, List<QuestionBase> questions) => Predict(Utils.SerializeState(state), questions);
     public SystemOneResponse Predict(string state, List<QuestionBase> questions)
     {
         var inputData = LayaBase.PrepareInputTensors(state, questions, tokenizer, specialIds, layaConfig);

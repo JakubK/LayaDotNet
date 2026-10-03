@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Tokenizers.HuggingFace.Tokenizer;
 
 namespace LayaDotNet;
@@ -45,6 +46,19 @@ public static class Utils
             QuestionKind.Score => "score",
             _ => "noul"
         };
+    }
+
+    public static string? SerializeState<T>(T state)
+    {
+        if (state is string)
+        {
+            return state.ToString();
+        }
+
+        return JsonSerializer.Serialize(state, new JsonSerializerOptions
+        {
+            WriteIndented = false
+        });
     }
     
     public static string Scrub(string s, SpecialIds specialIds)
