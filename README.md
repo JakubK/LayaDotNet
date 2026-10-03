@@ -28,5 +28,5 @@ var churnRisk = response.Noul("churn_risk");
 ### Acknowledgements
 
 - [receptron/laya Node.js library](https://github.com/receptron/laya)
-- [receptron/laya onnx](https://huggingface.co/convaiinnovations/laya)
+- [receptron/laya onnx](https://huggingface.co/receptron/laya-onnx)
 - [original laya model repo](https://github.com/NandhaKishorM/laya)
