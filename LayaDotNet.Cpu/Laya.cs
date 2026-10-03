@@ -10,11 +10,11 @@ public class Laya(InferenceSession session, Tokenizer tokenizer, LayaConfig laya
     public static async Task<Laya> LoadAsync(LayaOptions? options = null)
     {
         var layaBase = await LayaBase.LoadBaseAsync(options);
-        var layaSession = new InferenceSession($"{layaBase.Options.DownloadPath}/laya.onnx", sessionOptions);
+        var layaSession = new InferenceSession($"{layaBase.Options.DownloadPath}/laya.onnx");
         return new(layaSession, layaBase.Tokenizer, layaBase.Config, layaBase.SpecialIds);
     }
 
-    public SystemOneResponse Predict(dynamic state, List<QuestionBase> questions) => Predict(Utils.SerializeState(state), questions);
+    public SystemOneResponse Predict(object state, List<QuestionBase> questions) => Predict(Utils.SerializeState(state)!, questions);
     public SystemOneResponse Predict(string state, List<QuestionBase> questions)
     {
         var inputData = LayaBase.PrepareInputTensors(state, questions, tokenizer, specialIds, layaConfig);
